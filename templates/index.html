@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ personal.full_name }} | Civil & Structural Engineer Resume</title>
+  <meta name="description" content="{{ personal.title }} resume & engineering portfolio. {{ personal.summary[:150] }}...">
+  
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Core Stylesheet -->
+  <link rel="stylesheet" href="static/styles.css">
+</head>
+<body>
+
+  <!-- Minimalist Dot Matrix Background Pattern -->
+  <div class="blueprint-grid-overlay" aria-hidden="true"></div>
+
+  <!-- Navigation Bar -->
+  <header class="site-header">
+    <div class="container nav-container">
+      <a href="#hero" class="brand-badge">
+        <div class="brand-logo-icon">EJ</div>
+        <div class="brand-info">
+          <span class="brand-name">{{ personal.full_name }}</span>
+          <span class="brand-title">{{ personal.title }}</span>
+        </div>
+      </a>
+
+      <nav>
+        <ul class="nav-links">
+          <li><a href="#projects" class="nav-link">Projects</a></li>
+          <li><a href="#experience" class="nav-link">Experience</a></li>
+          <li><a href="#skills" class="nav-link">Skills & Codes</a></li>
+          <li><a href="#credentials" class="nav-link">Credentials</a></li>
+          <li><a href="#contact" class="nav-link">Contact</a></li>
+        </ul>
+      </nav>
+
+      <div class="nav-actions">
+        <!-- Edit Guide Info Button -->
+        <button id="edit-guide-btn" class="btn-icon" title="How to edit your resume in Python">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20h9"></path>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+          </svg>
+        </button>
+
+        <!-- Theme Toggle Button -->
+        <button id="theme-toggle" class="btn-icon" title="Toggle Light/Dark Theme" aria-label="Toggle theme">
+          <span id="theme-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </span>
+        </button>
+
+        <!-- PDF Export Button -->
+        <button class="btn-primary btn-print-resume" onclick="window.print()" title="Print or Save as PDF">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 6 2 18 2 18 9"></polyline>
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+            <rect x="6" y="14" width="12" height="8"></rect>
+          </svg>
+          Print / PDF
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero Section -->
+    <section id="hero" class="hero-section">
+      <div class="container hero-content">
+        <div>
+          <div class="badge-tag">
+            <span class="badge-dot"></span>
+            <span>{{ personal.license_badge }}</span>
+          </div>
+          
+          <h1 class="hero-title">
+            {{ personal.name }} <span class="gradient-text">{{ personal.last_name }}</span>
+          </h1>
+          
+          <div class="hero-subtitle">{{ personal.title }}</div>
+          <div class="hero-tagline">
+            {{ personal.tagline }}
+          </div>
+          
+          <p class="hero-description">
+            {{ personal.summary }}
+          </p>
+
+          <div class="hero-buttons">
+            <a href="#projects" class="btn-primary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                <polyline points="2 17 12 22 22 17"></polyline>
+                <polyline points="2 12 12 17 22 12"></polyline>
+              </svg>
+              View Projects
+            </a>
+
+            <button class="btn-secondary btn-print-resume" onclick="window.print()" title="Print or Save as PDF">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Export PDF Resume
+            </button>
+          </div>
+
+          <div class="contact-quicklinks">
+            <span class="contact-item">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+              </svg>
+              <span>{{ personal.location }}</span>
+            </span>
+
+            <a href="mailto:{{ personal.email }}" class="contact-item">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+              {{ personal.email }}
+            </a>
+
+            <a href="tel:{{ personal.phone }}" class="contact-item">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+              </svg>
+              {{ personal.phone }}
+            </a>
+
+            <a href="{{ personal.linkedin }}" target="_blank" rel="noopener noreferrer" class="contact-item">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
+                <rect x="2" y="9" width="4" height="12"></rect>
+                <circle cx="4" cy="4" r="2"></circle>
+              </svg>
+              LinkedIn Profile
+            </a>
+          </div>
+        </div>
+
+        <!-- Executive Engineering Profile Card -->
+        <div class="blueprint-card">
+          <div class="blueprint-header">
+            <span class="blueprint-badge">// Engineering Profile</span>
+            <div class="blueprint-title">Structural & Infrastructure Specs</div>
+          </div>
+
+          <div class="blueprint-stats-grid">
+            <div class="spec-box">
+              <div class="spec-label">Discipline</div>
+              <div class="spec-val">Civil Engineering</div>
+            </div>
+            <div class="spec-box">
+              <div class="spec-label">Institution</div>
+              <div class="spec-val">NUS (B.Eng)</div>
+            </div>
+            <div class="spec-box">
+              <div class="spec-label">Specialisation</div>
+              <div class="spec-val">Urban Digitalisation</div>
+            </div>
+            <div class="spec-box">
+              <div class="spec-label">Modeling & CAD</div>
+              <div class="spec-val">Robot / Revit / AutoCAD</div>
+            </div>
+          </div>
+
+          <div class="blueprint-status-indicator">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            <span>{{ personal.availability }}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Key Metrics Section -->
+    <section class="metrics-section">
+      <div class="container">
+        <div class="metrics-grid">
+          {% for m in metrics %}
+          <div class="metric-card">
+            <div class="metric-val">{{ m.value }}</div>
+            <div class="metric-label">{{ m.label }}</div>
+            <div class="metric-desc">{{ m.detail }}</div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    <!-- Featured Projects Section -->
+    <section id="projects" class="projects-section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-tag">Portfolio & Research</div>
+          <h2 class="section-title">Featured Projects & Technical Studies</h2>
+          <p class="section-subtitle">
+            Click any project to inspect research methodologies, structural deliverables, and tools.
+          </p>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="project-filter-bar" id="project-filter-bar">
+          <button class="filter-btn active" data-category="All">All</button>
+          {% for cat in project_categories %}
+          <button class="filter-btn" data-category="{{ cat }}">{{ cat }}</button>
+          {% endfor %}
+        </div>
+
+        <!-- Projects Grid -->
+        <div class="projects-grid" id="projects-grid">
+          {% for proj in projects %}
+          <div class="project-card" data-category="{{ proj.category }}" data-project-id="{{ proj.id }}">
+            <div class="project-header">
+              <span class="project-meta-pill">{{ proj.type or proj.category }}</span>
+              <span class="project-budget">{{ proj.budget }}</span>
+            </div>
+            <h3 class="project-card-title">{{ proj.title }}</h3>
+            <div class="project-role-badge">{{ proj.role }} • {{ proj.year }}</div>
+            <p class="project-summary">{{ proj.summary }}</p>
+            
+            {% if proj.stats %}
+            <div class="project-spec-pills">
+              {% for k, v in proj.stats.items() %}
+              <div class="spec-pill-item">
+                <span class="spec-pill-k">{{ k }}</span>
+                <span class="spec-pill-v">{{ v }}</span>
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="project-tools-list">
+              {% for t in proj.tools %}
+              <span class="tool-tag">{{ t }}</span>
+              {% endfor %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    <!-- Work Experience Timeline -->
+    <section id="experience" class="experience-section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-tag">Career & Leadership</div>
+          <h2 class="section-title">Work & Leadership Experience</h2>
+          <p class="section-subtitle">
+            Industry engineering internships, consulting assistant roles, and executive student leadership.
+          </p>
+        </div>
+
+        <div class="timeline">
+          {% for exp in experience %}
+          <div class="timeline-item">
+            <div class="timeline-marker"></div>
+            <div class="timeline-card">
+              <div class="timeline-header">
+                <h3 class="timeline-role">{{ exp.role }}</h3>
+                <span class="timeline-period">{{ exp.period }}</span>
+              </div>
+              <div class="timeline-company">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                </svg>
+                {{ exp.company }} • {{ exp.location }}
+              </div>
+              <ul class="timeline-bullets">
+                {% for a in exp.achievements %}
+                <li>{{ a }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+
+    <!-- Skills & Regulatory Standards -->
+    <section id="skills" class="skills-section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-tag">Core Competencies</div>
+          <h2 class="section-title">Technical Mastery & Toolchain</h2>
+          <p class="section-subtitle">
+            Advanced computational modeling, BIM coordination workflows, and construction administration software.
+          </p>
+        </div>
+
+        <div class="skills-grid">
+          {% for cat in skill_categories %}
+          <div class="skill-category-card">
+            <h3 class="skill-category-title">
+              <span style="color: var(--text-muted); font-family: var(--font-mono);">#</span>
+              {{ cat.category }}
+            </h3>
+            <div class="skill-bars-list">
+              {% for s in cat.skills %}
+              <div class="skill-bar-item">
+                <div class="skill-meta">
+                  <span class="skill-name">{{ s.name }}</span>
+                  <span class="skill-percent">{{ s.level }}%</span>
+                </div>
+                <div class="skill-track">
+                  <div class="skill-fill" style="width: {{ s.level }}%;"></div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Regulatory Standards & Building Codes -->
+        {% if codes_and_standards %}
+        <div class="codes-banner">
+          <div class="codes-banner-title">// Governing Codes & Engineering Standards</div>
+          <div class="codes-tags-wrap">
+            {% for code in codes_and_standards %}
+            <span class="code-tag">{{ code }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </section>
+
+    <!-- Education & Certifications -->
+    <section id="credentials" class="credentials-section">
+      <div class="container">
+        <div class="section-header">
+          <div class="section-tag">Qualifications</div>
+          <h2 class="section-title">Education & Licenses</h2>
+        </div>
+
+        <div class="credentials-grid">
+          <div>
+            <h3 class="credential-column-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+              </svg>
+              Education
+            </h3>
+            {% for edu in education %}
+            <div class="credential-card">
+              <span class="credential-badge">Academic Degree</span>
+              <h4 class="credential-title">{{ edu.degree }}</h4>
+              <div class="credential-institution">{{ edu.institution }} • {{ edu.period }}</div>
+              <div class="credential-detail">{{ edu.highlights }}</div>
+            </div>
+            {% endfor %}
+          </div>
+
+          <div>
+            <h3 class="credential-column-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="8" r="7"></circle>
+                <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
+              </svg>
+              Licenses & Certifications
+            </h3>
+            {% for cert in certifications %}
+            <div class="credential-card">
+              <span class="credential-badge">{{ cert.badge or 'Certification' }}</span>
+              <h4 class="credential-title">{{ cert.title }}</h4>
+              <div class="credential-institution">{{ cert.issuer }}</div>
+              <div class="credential-detail">{{ cert.year }}</div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact & Call to Action -->
+    <section id="contact" class="contact-section">
+      <div class="container">
+        <div class="contact-box">
+          <h2 class="contact-headline">Let's Build Resilient Infrastructure Together</h2>
+          <p class="contact-subtext">
+            Available for structural consultations, major capital infrastructure projects, and engineering leadership.
+          </p>
+
+          <div class="contact-action-row">
+            <a href="mailto:{{ personal.email }}" class="btn-primary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+              Send an Email
+            </a>
+
+            <button class="btn-secondary btn-print-resume" onclick="window.print()" title="Print or Save as PDF">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                <rect x="6" y="14" width="12" height="8"></rect>
+              </svg>
+              Download PDF Resume
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Project Detail Modal -->
+  <div id="project-modal" class="modal-backdrop" aria-hidden="true" role="dialog">
+    <div class="modal-card">
+      <button id="modal-close" class="modal-close-btn" aria-label="Close dialog">&times;</button>
+      <div id="modal-details"></div>
+    </div>
+  </div>
+
+  <!-- Edit Guide Modal -->
+  <div id="guide-modal" class="modal-backdrop" aria-hidden="true" role="dialog">
+    <div class="modal-card">
+      <button id="guide-close" class="modal-close-btn" aria-label="Close dialog">&times;</button>
+      <h3 style="font-size: 1.35rem; font-weight: 800; margin-bottom: 12px; color: var(--text-primary); letter-spacing: -0.02em;">
+        Python Resume Configuration
+      </h3>
+      <p style="color: var(--text-secondary); margin-bottom: 16px; line-height: 1.6; font-size: 0.92rem;">
+        All resume content is stored directly in Python:
+        <strong style="color: var(--text-primary); font-family: var(--font-mono);">data.py</strong>.
+      </p>
+      <div style="background: var(--bg-secondary); padding: 14px 16px; border-radius: 6px; border: 1px solid var(--border-hairline); font-family: var(--font-mono); font-size: 0.82rem; color: var(--text-primary); margin-bottom: 16px; line-height: 1.6;">
+        # Run server:<br>
+        py app.py<br><br>
+        # Build static HTML:<br>
+        py build.py
+      </div>
+      <p style="color: var(--text-muted); font-size: 0.82rem;">
+        Click <strong>Print / PDF</strong> in the top-right corner to export a clean, physical executive resume.
+      </p>
+    </div>
+  </div>
+
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        &copy; 2026 {{ personal.full_name }} • Minimalist Engineering Architecture
+      </div>
+      <div>
+        <a href="#hero" style="color: var(--text-primary); text-decoration: none; font-weight: 600;">Back to Top ↑</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Embedded Project Data for Fast Client Interactions -->
+  <script id="resume-projects-json" type="application/json">
+    {{ projects | tojson | safe }}
+  </script>
+
+  <!-- Client-side Micro-Interactions -->
+  <script>
+    // Theme Switcher (Default: Light Theme)
+    const savedTheme = localStorage.getItem('resume-theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
+
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+      themeToggle.addEventListener('click', () => {
+        const cur = document.documentElement.getAttribute('data-theme') || 'light';
+        const next = cur === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('resume-theme', next);
+        updateThemeIcon(next);
+      });
+    }
+
+    function updateThemeIcon(theme) {
+      const icon = document.getElementById('theme-icon');
+      if (!icon) return;
+      if (theme === 'dark') {
+        icon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>`;
+      } else {
+        icon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>`;
+      }
+    }
+
+    // Category Filter
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const projectCards = document.querySelectorAll('.project-card');
+
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const cat = btn.dataset.category;
+
+        projectCards.forEach(card => {
+          if (cat === 'All' || card.dataset.category === cat) {
+            card.style.display = 'flex';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      });
+    });
+
+    // Project Modal
+    let projectsData = [];
+    try {
+      const jsonElem = document.getElementById('resume-projects-json');
+      if (jsonElem && jsonElem.textContent) {
+        projectsData = JSON.parse(jsonElem.textContent);
+      }
+    } catch (e) {
+      console.warn('Projects JSON could not be parsed:', e);
+    }
+    const modal = document.getElementById('project-modal');
+    const modalDetails = document.getElementById('modal-details');
+    const modalClose = document.getElementById('modal-close');
+
+    projectCards.forEach(card => {
+      card.addEventListener('click', () => {
+        const pid = card.dataset.projectId;
+        const proj = projectsData.find(p => p.id === pid);
+        if (!proj) return;
+
+        const statsHtml = proj.stats ? Object.entries(proj.stats).map(([k, v]) => `
+          <div class="spec-box">
+            <div class="spec-label">${k}</div>
+            <div class="spec-val">${v}</div>
+          </div>
+        `).join('') : '';
+
+        const highlightsHtml = proj.highlights.map(h => `<li>${h}</li>`).join('');
+        const toolsHtml = proj.tools.map(t => `<span class="tool-tag">${t}</span>`).join('');
+
+        modalDetails.innerHTML = `
+          <div style="margin-bottom: 16px;">
+            <span class="project-meta-pill">${proj.category} // ${proj.budget}</span>
+            <h2 style="font-size: 1.6rem; margin-top: 6px; color: var(--text-primary); font-weight: 800; letter-spacing: -0.02em;">${proj.title}</h2>
+            <div style="color: var(--text-secondary); font-weight: 500; font-size: 0.88rem; margin-top: 2px;">
+              ${proj.role} (${proj.year})
+            </div>
+          </div>
+          ${statsHtml ? `<div class="blueprint-stats-grid" style="margin-bottom: 20px;">${statsHtml}</div>` : ''}
+          <div style="margin-bottom: 18px;">
+            <h4 style="font-size: 0.78rem; font-family: var(--font-mono); color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.06em;">
+              // Overview
+            </h4>
+            <p style="color: var(--text-secondary); line-height: 1.65; font-size: 0.95rem;">
+              ${proj.summary}
+            </p>
+          </div>
+          <div style="margin-bottom: 20px;">
+            <h4 style="font-size: 0.78rem; font-family: var(--font-mono); color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.06em;">
+              // Key Deliverables
+            </h4>
+            <ul class="timeline-bullets">${highlightsHtml}</ul>
+          </div>
+          <div>
+            <h4 style="font-size: 0.78rem; font-family: var(--font-mono); color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.06em;">
+              // Engineering Software
+            </h4>
+            <div class="project-tools-list" style="margin-top: 6px;">${toolsHtml}</div>
+          </div>
+        `;
+        modal.classList.add('open');
+      });
+    });
+
+    if (modalClose) {
+      modalClose.addEventListener('click', () => modal.classList.remove('open'));
+      modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') modal.classList.remove('open'); });
+    }
+
+    // Print button
+    document.querySelectorAll('.btn-print-resume').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.print();
+      });
+    });
+
+    // Guide Modal
+    const guideBtn = document.getElementById('edit-guide-btn');
+    const guideModal = document.getElementById('guide-modal');
+    const guideClose = document.getElementById('guide-close');
+    if (guideBtn && guideModal && guideClose) {
+      guideBtn.addEventListener('click', () => guideModal.classList.add('open'));
+      guideClose.addEventListener('click', () => guideModal.classList.remove('open'));
+      guideModal.addEventListener('click', e => { if (e.target === guideModal) guideModal.classList.remove('open'); });
+    }
+  </script>
+</body>
+</html>
