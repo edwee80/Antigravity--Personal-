@@ -7,6 +7,8 @@ import json
 import os
 import uuid
 import base64
+import hashlib
+import hmac
 
 # Local storage directory for user-uploaded book covers
 COVERS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "covers")
@@ -128,8 +130,34 @@ def fetch_book_details(title: str, author: str) -> dict:
         
     return {"cover_url": cover_url, "total_pages": total_pages, "suggested_genre": suggested_genre}
 
+def hash_password(password: str) -> str:
+    """Generate salted PBKDF2-SHA256 password hash."""
+    salt = os.urandom(16).hex()
+    dk = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt.encode('utf-8'), 100000)
+    return f"{salt}:{dk.hex()}"
+
+def verify_password(password: str, stored_hash: str) -> bool:
+    """Verify password against stored salt:hash string."""
+    try:
+        salt, dk_hex = stored_hash.split(':')
+        dk = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt.encode('utf-8'), 100000)
+        return hmac.compare_digest(dk.hex(), dk_hex)
+    except Exception:
+        return False
+
+def get_current_user() -> dict | None:
+    """Retrieve currently authenticated user dict from session state."""
+    return st.session_state.get("logged_in_user")
+
+def get_current_user_id() -> int:
+    """Retrieve current user ID, defaulting to 1 for backwards compatibility."""
+    user = get_current_user()
+    if user and isinstance(user, dict) and "id" in user:
+        return user["id"]
+    return 1
+
 class BookDatabase:
-    """Object-oriented wrapper for local SQLite database operations."""
+    """Object-oriented wrapper for local SQLite database operations with user multi-tenancy."""
     def __init__(self, db_name="books.db"):
         self.db_name = db_name
         self._create_table()
@@ -139,9 +167,21 @@ class BookDatabase:
 
     def _create_table(self):
         with self._get_connection() as conn:
+            # Users table
+            conn.execute('''
+                CREATE TABLE IF NOT EXISTS users (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    username TEXT UNIQUE NOT NULL COLLATE NOCASE,
+                    password_hash TEXT NOT NULL,
+                    display_name TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            # Books table with user_id
             conn.execute('''
                 CREATE TABLE IF NOT EXISTS books (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER,
                     title TEXT NOT NULL,
                     author TEXT NOT NULL,
                     status TEXT NOT NULL,
@@ -154,6 +194,8 @@ class BookDatabase:
             cursor = conn.cursor()
             cursor.execute("PRAGMA table_info(books)")
             columns = [col[1] for col in cursor.fetchall()]
+            if 'user_id' not in columns:
+                cursor.execute("ALTER TABLE books ADD COLUMN user_id INTEGER")
             if 'cover_url' not in columns:
                 cursor.execute("ALTER TABLE books ADD COLUMN cover_url TEXT")
             if 'current_page' not in columns:
@@ -163,76 +205,206 @@ class BookDatabase:
             if 'genre' not in columns:
                 cursor.execute("ALTER TABLE books ADD COLUMN genre TEXT DEFAULT 'Fiction'")
 
-    def add_book(self, title, author, status, cover_url=None, current_page=0, total_pages=0, genre="Fiction"):
+            # Seed default edrey account if no users exist
+            cursor.execute("SELECT COUNT(*) FROM users")
+            if cursor.fetchone()[0] == 0:
+                pw_hash = hash_password("edrey123")
+                cursor.execute(
+                    "INSERT INTO users (username, password_hash, display_name) VALUES (?, ?, ?)",
+                    ("edrey", pw_hash, "Edrey")
+                )
+                edrey_id = cursor.lastrowid
+                cursor.execute("UPDATE books SET user_id = ? WHERE user_id IS NULL", (edrey_id,))
+
+    def register_user(self, username, password, display_name=None):
+        """Register a new distinct user account."""
+        username = (username or "").strip()
+        if not username:
+            return False, "Username cannot be empty."
+        if not password or len(password) < 4:
+            return False, "Password must be at least 4 characters long."
+        if not display_name or not display_name.strip():
+            display_name = username.capitalize()
+        else:
+            display_name = display_name.strip()
+            
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT id FROM users WHERE username = ?", (username,))
+            if cursor.fetchone():
+                return False, f"Username '{username}' is already taken. Please choose another."
+            
+            pw_hash = hash_password(password)
+            cursor.execute(
+                "INSERT INTO users (username, password_hash, display_name) VALUES (?, ?, ?)",
+                (username, pw_hash, display_name)
+            )
+            user_id = cursor.lastrowid
+            return True, {"id": user_id, "username": username, "display_name": display_name}
+
+    def authenticate_user(self, username, password):
+        """Validate user credentials and return user dict."""
+        username = (username or "").strip()
+        if not username or not password:
+            return False, "Please enter both username and password."
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT id, username, password_hash, display_name FROM users WHERE username = ?", (username,))
+            row = cursor.fetchone()
+            if not row:
+                return False, "User not found. Please check your username or register."
+            user_id, uname, stored_hash, dname = row
+            if verify_password(password, stored_hash):
+                return True, {"id": user_id, "username": uname, "display_name": dname or uname}
+            else:
+                return False, "Incorrect password. Please try again."
+
+    def update_password(self, username, new_password):
+        """Renew or reset password for a given username."""
+        username = (username or "").strip()
+        if not username:
+            return False, "Please enter your username."
+        if not new_password or len(new_password) < 4:
+            return False, "New password must be at least 4 characters long."
+
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT id, username, display_name FROM users WHERE username = ?", (username,))
+            row = cursor.fetchone()
+            if not row:
+                return False, f"Account '{username}' was not found in the registry."
+            
+            new_hash = hash_password(new_password)
+            cursor.execute("UPDATE users SET password_hash = ? WHERE id = ?", (new_hash, row[0]))
+            conn.commit()
+            return True, {"id": row[0], "username": row[1], "display_name": row[2] or row[1]}
+
+    def change_password(self, user_id, current_password, new_password):
+        """Change password for an authenticated user verifying their current password."""
+        if not new_password or len(new_password) < 4:
+            return False, "New password must be at least 4 characters long."
+
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT password_hash FROM users WHERE id = ?", (user_id,))
+            row = cursor.fetchone()
+            if not row:
+                return False, "User account not found."
+            if not verify_password(current_password, row[0]):
+                return False, "Current password is incorrect."
+
+            new_hash = hash_password(new_password)
+            cursor.execute("UPDATE users SET password_hash = ? WHERE id = ?", (new_hash, user_id))
+            conn.commit()
+            return True, "Password updated successfully!"
+
+    def delete_user_account(self, user_id, password_confirm):
+        """Permanently delete a user account and all their cataloged books."""
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT password_hash FROM users WHERE id = ?", (user_id,))
+            row = cursor.fetchone()
+            if not row:
+                return False, "User account not found."
+            if not verify_password(password_confirm, row[0]):
+                return False, "Incorrect password. Cannot delete account."
+
+            # Delete all books belonging to this user
+            conn.execute("DELETE FROM books WHERE user_id = ?", (user_id,))
+            # Delete user account
+            conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
+            conn.commit()
+            return True, "Account and all associated volumes permanently deleted."
+
+    def add_book(self, title, author, status, cover_url=None, current_page=0, total_pages=0, genre="Fiction", user_id=None):
+        if user_id is None:
+            user_id = get_current_user_id()
         with self._get_connection() as conn:
             conn.execute(
-                '''INSERT INTO books (title, author, status, cover_url, current_page, total_pages, genre) 
-                   VALUES (?, ?, ?, ?, ?, ?, ?)''', 
-                (title, author, status, cover_url, current_page, total_pages, genre)
+                '''INSERT INTO books (title, author, status, cover_url, current_page, total_pages, genre, user_id) 
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)''', 
+                (title, author, status, cover_url, current_page, total_pages, genre, user_id)
             )
 
-    def get_books(self, status, genre_filter=None, sort_order="Title (A → Z)"):
+    def get_books(self, status, genre_filter=None, sort_order="Title (A → Z)", user_id=None):
+        if user_id is None:
+            user_id = get_current_user_id()
         with self._get_connection() as conn:
             if sort_order == "Author (A → Z)":
                 order_clause = "ORDER BY author COLLATE NOCASE ASC, title COLLATE NOCASE ASC"
             elif sort_order == "Title (Z → A)":
                 order_clause = "ORDER BY title COLLATE NOCASE DESC"
             else:
-                # Default alphabetical order by title
                 order_clause = "ORDER BY title COLLATE NOCASE ASC"
 
             if genre_filter and genre_filter != "All Themes":
                 return pd.read_sql_query(
-                    f"SELECT id, title, author, cover_url, current_page, total_pages, genre FROM books WHERE status=? AND genre=? {order_clause}", 
+                    f"SELECT id, title, author, cover_url, current_page, total_pages, genre FROM books WHERE user_id=? AND status=? AND genre=? {order_clause}", 
                     conn, 
-                    params=(status, genre_filter)
+                    params=(user_id, status, genre_filter)
                 )
             else:
                 return pd.read_sql_query(
-                    f"SELECT id, title, author, cover_url, current_page, total_pages, genre FROM books WHERE status=? {order_clause}", 
+                    f"SELECT id, title, author, cover_url, current_page, total_pages, genre FROM books WHERE user_id=? AND status=? {order_clause}", 
                     conn, 
-                    params=(status,)
+                    params=(user_id, status)
                 )
 
-    def get_all_genres(self):
+    def get_all_genres(self, user_id=None):
+        if user_id is None:
+            user_id = get_current_user_id()
         with self._get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT DISTINCT genre FROM books WHERE genre IS NOT NULL AND genre != ''")
+            cursor.execute("SELECT DISTINCT genre FROM books WHERE user_id=? AND genre IS NOT NULL AND genre != ''", (user_id,))
             genres = [row[0] for row in cursor.fetchall()]
             return genres if genres else ["Fiction"]
 
-    def update_page(self, book_id, current_page, total_pages=None):
+    def update_page(self, book_id, current_page, total_pages=None, user_id=None):
+        if user_id is None:
+            user_id = get_current_user_id()
         with self._get_connection() as conn:
             if total_pages is not None:
                 conn.execute(
-                    'UPDATE books SET current_page=?, total_pages=? WHERE id=?', 
-                    (current_page, total_pages, book_id)
+                    'UPDATE books SET current_page=?, total_pages=? WHERE id=? AND user_id=?', 
+                    (current_page, total_pages, book_id, user_id)
                 )
             else:
-                conn.execute('UPDATE books SET current_page=? WHERE id=?', (current_page, book_id))
+                conn.execute('UPDATE books SET current_page=? WHERE id=? AND user_id=?', (current_page, book_id, user_id))
 
-    def update_total_pages(self, book_id, total_pages):
+    def update_total_pages(self, book_id, total_pages, user_id=None):
+        if user_id is None:
+            user_id = get_current_user_id()
         with self._get_connection() as conn:
-            conn.execute('UPDATE books SET total_pages=? WHERE id=?', (total_pages, book_id))
+            conn.execute('UPDATE books SET total_pages=? WHERE id=? AND user_id=?', (total_pages, book_id, user_id))
 
-    def update_genre(self, book_id, new_genre):
+    def update_genre(self, book_id, new_genre, user_id=None):
+        if user_id is None:
+            user_id = get_current_user_id()
         with self._get_connection() as conn:
-            conn.execute('UPDATE books SET genre=? WHERE id=?', (new_genre, book_id))
+            conn.execute('UPDATE books SET genre=? WHERE id=? AND user_id=?', (new_genre, book_id, user_id))
 
-    def update_cover(self, book_id, cover_url):
+    def update_cover(self, book_id, cover_url, user_id=None):
+        if user_id is None:
+            user_id = get_current_user_id()
         with self._get_connection() as conn:
-            conn.execute('UPDATE books SET cover_url=? WHERE id=?', (cover_url, book_id))
+            conn.execute('UPDATE books SET cover_url=? WHERE id=? AND user_id=?', (cover_url, book_id, user_id))
 
-    def update_status(self, book_id, new_status):
+    def update_status(self, book_id, new_status, user_id=None):
+        if user_id is None:
+            user_id = get_current_user_id()
         with self._get_connection() as conn:
-            conn.execute('UPDATE books SET status=? WHERE id=?', (new_status, book_id))
+            conn.execute('UPDATE books SET status=? WHERE id=? AND user_id=?', (new_status, book_id, user_id))
 
-    def delete_book(self, book_id):
+    def delete_book(self, book_id, user_id=None):
+        if user_id is None:
+            user_id = get_current_user_id()
         with self._get_connection() as conn:
-            conn.execute('DELETE FROM books WHERE id=?', (book_id,))
+            conn.execute('DELETE FROM books WHERE id=? AND user_id=?', (book_id, user_id))
 
-    def get_category_summary(self):
-        """Retrieve aggregated volume statistics grouped by category/genre."""
+    def get_category_summary(self, user_id=None):
+        """Retrieve aggregated volume statistics grouped by category/genre for a specific user."""
+        if user_id is None:
+            user_id = get_current_user_id()
         with self._get_connection() as conn:
             query = """
             SELECT 
@@ -244,13 +416,16 @@ class BookDatabase:
                 SUM(COALESCE(total_pages, 0)) as total_pages,
                 SUM(COALESCE(current_page, 0)) as pages_read
             FROM books
+            WHERE user_id = ?
             GROUP BY COALESCE(NULLIF(genre, ''), 'General')
             ORDER BY category COLLATE NOCASE ASC
             """
-            return pd.read_sql_query(query, conn)
+            return pd.read_sql_query(query, conn, params=(user_id,))
 
-    def get_books_by_genre(self, genre, status_filter=None, sort_order="Title (A → Z)"):
-        """Retrieve all books belonging to a specific genre/theme folder."""
+    def get_books_by_genre(self, genre, status_filter=None, sort_order="Title (A → Z)", user_id=None):
+        """Retrieve all books belonging to a specific genre/theme folder for a specific user."""
+        if user_id is None:
+            user_id = get_current_user_id()
         with self._get_connection() as conn:
             if sort_order == "Author (A → Z)":
                 order_clause = "ORDER BY author COLLATE NOCASE ASC, title COLLATE NOCASE ASC"
@@ -264,14 +439,16 @@ class BookDatabase:
                 order_clause = "ORDER BY title COLLATE NOCASE ASC"
 
             if status_filter and status_filter != "All Statuses":
-                query = f"SELECT id, title, author, cover_url, current_page, total_pages, genre, status FROM books WHERE COALESCE(NULLIF(genre, ''), 'General')=? AND status=? {order_clause}"
-                return pd.read_sql_query(query, conn, params=(genre, status_filter))
+                query = f"SELECT id, title, author, cover_url, current_page, total_pages, genre, status FROM books WHERE user_id=? AND COALESCE(NULLIF(genre, ''), 'General')=? AND status=? {order_clause}"
+                return pd.read_sql_query(query, conn, params=(user_id, genre, status_filter))
             else:
-                query = f"SELECT id, title, author, cover_url, current_page, total_pages, genre, status FROM books WHERE COALESCE(NULLIF(genre, ''), 'General')=? {order_clause}"
-                return pd.read_sql_query(query, conn, params=(genre,))
+                query = f"SELECT id, title, author, cover_url, current_page, total_pages, genre, status FROM books WHERE user_id=? AND COALESCE(NULLIF(genre, ''), 'General')=? {order_clause}"
+                return pd.read_sql_query(query, conn, params=(user_id, genre))
 
-    def get_library_overall_stats(self):
-        """Retrieve total collection metrics across the whole library."""
+    def get_library_overall_stats(self, user_id=None):
+        """Retrieve total collection metrics across the user's private library."""
+        if user_id is None:
+            user_id = get_current_user_id()
         with self._get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("""
@@ -284,8 +461,14 @@ class BookDatabase:
                     SUM(COALESCE(total_pages, 0)) as total_pages,
                     SUM(COALESCE(current_page, 0)) as pages_read
                 FROM books
-            """)
+                WHERE user_id = ?
+            """, (user_id,))
             row = cursor.fetchone()
+            if not row or row[0] is None:
+                return {
+                    "total_books": 0, "total_genres": 0, "want_count": 0,
+                    "ongoing_count": 0, "read_count": 0, "total_pages": 0, "pages_read": 0
+                }
             return {
                 "total_books": row[0] or 0,
                 "total_genres": row[1] or 0,
@@ -325,6 +508,31 @@ st.markdown(
     """
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+    /* Enforce Dark Color Scheme Globally & Disable Light Mode */
+    :root, html, body {
+        color-scheme: dark !important;
+    }
+
+    /* Top Bar - Restored with Clean Ambient Styling */
+    header[data-testid="stHeader"] {
+        background: transparent !important;
+        display: flex !important;
+        visibility: visible !important;
+    }
+    header[data-testid="stHeader"] button,
+    header[data-testid="stHeader"] svg {
+        color: #f7ebe0 !important;
+        fill: #f7ebe0 !important;
+    }
+    #MainMenu {
+        display: block !important;
+        visibility: visible !important;
+    }
+    /* Hide Theme selectbox inside Settings modal so Light mode cannot be picked */
+    div[data-testid="stSettingsModal"] div[data-testid="stSelectbox"] {
+        display: none !important;
+    }
 
     /* Main Canvas Fallback - Warm ambient wood library study lighting */
     .stApp {
@@ -439,6 +647,10 @@ st.markdown(
         letter-spacing: 0.5px !important;
         border-radius: 4px !important;
         padding: 5px 14px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
         transition: all 0.2s ease !important;
     }
     div[data-testid="stPills"] button:hover {
@@ -464,8 +676,16 @@ st.markdown(
         border-radius: 4px !important;
     }
 
-    /* Buttons - Clean horizontal layout, NO awkward wrapping */
-    div[data-testid="stButton"] button {
+    /* Buttons - Clean horizontal layout & PERFECTLY CENTERED text */
+    div[data-testid="stButton"] {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        width: 100% !important;
+    }
+    div[data-testid="stButton"] button,
+    button[kind="primary"],
+    button[kind="secondary"] {
         white-space: nowrap !important;
         font-family: 'Plus Jakarta Sans', sans-serif !important;
         font-size: 0.85rem !important;
@@ -473,6 +693,30 @@ st.markdown(
         border-radius: 5px !important;
         padding: 0.38rem 0.65rem !important;
         transition: all 0.2s ease !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+    }
+    div[data-testid="stButton"] button > div,
+    div[data-testid="stButton"] button div[data-testid="stMarkdownContainer"] {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    div[data-testid="stButton"] button p {
+        text-align: center !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        line-height: 1.3 !important;
+        width: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
     }
 
     /* Primary buttons: Antique Burgundy Leather with Gold Accent */
@@ -521,6 +765,10 @@ st.markdown(
         border-radius: 6px !important;
         border: none !important;
         padding: 8px 24px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
         transition: all 0.25s ease !important;
     }
     div[data-testid="stSegmentedControl"] button:hover {
@@ -558,6 +806,29 @@ st.markdown(
         box-shadow: 0 4px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,235,200,0.1);
         text-align: center;
     }
+
+    /* Complete Dark Mode Lock for Dialogs, Menus, Popovers, and Expanders */
+    div[data-testid="stExpander"] {
+        background-color: #1c120b !important;
+        border: 1px solid #563823 !important;
+        border-radius: 8px !important;
+    }
+    div[data-testid="stExpander"] summary {
+        color: #f7ebe0 !important;
+    }
+    div[data-baseweb="popover"], div[data-baseweb="menu"], ul[role="listbox"], li[role="option"] {
+        background-color: #1f140d !important;
+        color: #f7ebe0 !important;
+    }
+    li[role="option"]:hover, li[aria-selected="true"] {
+        background-color: #3d2719 !important;
+        color: #ffffff !important;
+    }
+    div[role="dialog"], div[data-testid="stModal"] {
+        background-color: #1c120b !important;
+        color: #f7ebe0 !important;
+        border: 1.5px solid #5c3c26 !important;
+    }
     </style>
     """,
     unsafe_allow_html=True
@@ -570,21 +841,132 @@ if "finish_toast" in st.session_state:
 if "save_toast" in st.session_state:
     st.toast(st.session_state.pop("save_toast"))
 
+# ================= AUTHENTICATION & MULTI-TENANCY =================
+def render_auth_page(database):
+    """Render the classical library authentication portal."""
+    st.markdown(
+        """
+        <div style="text-align: center; padding: 25px 0 15px 0; margin-bottom: 20px;">
+            <div style="font-family: 'Cinzel', serif; font-size: 2.6rem; font-weight: 800; color: #faede0; letter-spacing: 2px; text-shadow: 0 3px 8px rgba(0,0,0,0.85);">
+                🏛️ PERSONAL LIBRARY
+            </div>
+            <div style="font-family: 'Playfair Display', Georgia, serif; font-size: 1.15rem; font-style: italic; color: #cf9a6b; margin-top: 6px;">
+                Grand Archive of Literature & Private Reader Sanctuaries
+            </div>
+            <div style="height: 4px; max-width: 320px; margin: 16px auto 0 auto; background: linear-gradient(90deg, transparent, #c8915e, transparent); border-radius: 2px;"></div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+    _, col_auth, _ = st.columns([1, 1.4, 1])
+    with col_auth:
+        with st.container(border=True):
+            st.markdown(
+                """
+                <div style="text-align: center; margin-bottom: 16px;">
+                    <span style="font-size: 32px;">🔐</span>
+                    <div style="font-family: 'Cinzel', serif; font-size: 1.35rem; font-weight: 700; color: #faede0; letter-spacing: 0.8px; margin-top: 4px;">
+                        READER ACCESS PORTAL
+                    </div>
+                    <div style="font-size: 0.86rem; color: #cf9a6b; margin-top: 4px;">
+                        Each reader possesses an isolated, private library archive.
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+            auth_tab_in, auth_tab_reg, auth_tab_renew = st.tabs(["🔑 Sign In", "📝 Register New Reader", "🔄 Reset Password"])
+
+            with auth_tab_in:
+                with st.form("form_signin", clear_on_submit=False):
+                    login_user = st.text_input("Username", key="auth_login_user", placeholder="e.g. edrey")
+                    login_pass = st.text_input("Password", type="password", key="auth_login_pass", placeholder="••••••••")
+                    login_btn = st.form_submit_button("🔓 Enter My Library", type="primary", use_container_width=True)
+
+                    if login_btn:
+                        ok, res = database.authenticate_user(login_user, login_pass)
+                        if ok:
+                            st.session_state["logged_in_user"] = res
+                            st.session_state["finish_toast"] = f"Welcome back, {res['display_name']}!"
+                            st.rerun()
+                        else:
+                            st.error(res)
+
+            with auth_tab_reg:
+                with st.form("form_register", clear_on_submit=False):
+                    reg_user = st.text_input("Choose Username", key="auth_reg_user", placeholder="e.g. sarah")
+                    reg_name = st.text_input("Reader Name / Display Name", key="auth_reg_name", placeholder="e.g. Sarah")
+                    reg_pass1 = st.text_input("Password", type="password", key="auth_reg_pass1", placeholder="At least 4 characters")
+                    reg_pass2 = st.text_input("Confirm Password", type="password", key="auth_reg_pass2", placeholder="Re-enter password")
+                    reg_btn = st.form_submit_button("📜 Register & Create Sanctuary", type="primary", use_container_width=True)
+
+                    if reg_btn:
+                        if not reg_user.strip():
+                            st.error("Please enter a username.")
+                        elif not reg_pass1 or len(reg_pass1) < 4:
+                            st.error("Password must be at least 4 characters long.")
+                        elif reg_pass1 != reg_pass2:
+                            st.error("Passwords do not match.")
+                        else:
+                            ok, res = database.register_user(reg_user, reg_pass1, reg_name)
+                            if ok:
+                                st.session_state["logged_in_user"] = res
+                                st.session_state["finish_toast"] = f"Welcome to your private library, {res['display_name']}!"
+                                st.rerun()
+                            else:
+                                st.error(res)
+
+            with auth_tab_renew:
+                with st.form("form_renew_pw", clear_on_submit=False):
+                    st.caption("Forgot your password? Enter your username and set a new password.")
+                    renew_user = st.text_input("Username", key="auth_renew_user", placeholder="Enter your registered username")
+                    renew_pass1 = st.text_input("New Password", type="password", key="auth_renew_pass1", placeholder="At least 4 characters")
+                    renew_pass2 = st.text_input("Confirm New Password", type="password", key="auth_renew_pass2", placeholder="Re-enter new password")
+                    renew_btn = st.form_submit_button("🔐 Renew Password & Enter", type="primary", use_container_width=True)
+
+                    if renew_btn:
+                        if not renew_user.strip():
+                            st.error("Please enter your username.")
+                        elif not renew_pass1 or len(renew_pass1) < 4:
+                            st.error("New password must be at least 4 characters long.")
+                        elif renew_pass1 != renew_pass2:
+                            st.error("Passwords do not match. Please verify your new password.")
+                        else:
+                            ok, res = database.update_password(renew_user, renew_pass1)
+                            if ok:
+                                st.session_state["logged_in_user"] = res
+                                st.session_state["finish_toast"] = f"Password renewed! Welcome back, {res['display_name']}!"
+                                st.rerun()
+                            else:
+                                st.error(res)
+
+current_user = get_current_user()
+if not current_user:
+    render_auth_page(db)
+    st.stop()
+
 # ================= GRAND WOODEN LIBRARY HEADER =================
+user_dname = current_user.get('display_name', 'Reader') if current_user else 'Reader'
+user_uname = current_user.get('username', 'reader') if current_user else 'reader'
+user_library_title = f"🏛️ {user_dname.upper()}'S LIBRARY"
 st.markdown(
-    """
+    f"""
     <div style="padding: 10px 0 18px 0; border-bottom: 2px solid #5a3c25; margin-bottom: 20px;">
         <div style="display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
             <div>
                 <span style="font-family: 'Cinzel', serif; font-size: 2.25rem; font-weight: 800; color: #faede0; letter-spacing: 1.2px; text-shadow: 0 2px 6px rgba(0,0,0,0.8);">
-                    🏛️ PERSONAL LIBRARY
+                    {user_library_title}
                 </span>
                 <span style="font-family: 'Playfair Display', Georgia, serif; font-size: 1.05rem; font-style: italic; color: #cf9a6b; margin-left: 16px;">
                     Grand Archive of Literature & Study
                 </span>
             </div>
-            <div style="font-family: 'Cinzel', serif; font-size: 0.82rem; font-weight: 600; color: #dfbe9b; background: linear-gradient(180deg, #3d281a 0%, #2a1a10 100%); padding: 6px 16px; border-radius: 4px; border: 1px solid #6b472c; box-shadow: 0 3px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,230,190,0.2); letter-spacing: 1px;">
-                CURATED COLLECTION
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="font-family: 'Cinzel', serif; font-size: 0.82rem; font-weight: 600; color: #dfbe9b; background: linear-gradient(180deg, #3d281a 0%, #2a1a10 100%); padding: 6px 14px; border-radius: 4px; border: 1px solid #6b472c; box-shadow: 0 3px 8px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,230,190,0.2); letter-spacing: 1px;">
+                    👤 {user_dname} (@{user_uname})
+                </div>
             </div>
         </div>
         <div style="height: 6px; background: linear-gradient(90deg, #4a301f 0%, #875734 25%, #c8915e 50%, #875734 75%, #4a301f 100%); border-radius: 3px; margin-top: 14px; box-shadow: 0 4px 10px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255, 235, 195, 0.35);"></div>
@@ -1282,6 +1664,25 @@ def render_category_folders_summary_page(db):
 
 # ================= SIDEBAR: CATALOG & ACQUISITIONS =================
 with st.sidebar:
+    sb_dname = current_user.get('display_name', 'Reader') if current_user else 'Reader'
+    sb_uname = current_user.get('username', 'reader') if current_user else 'reader'
+    st.markdown(
+        f"""
+        <div style="background: linear-gradient(145deg, #2b1d14 0%, #1a1008 100%); border: 1.5px solid #6b472c; border-radius: 8px; padding: 12px 14px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+            <div style="font-family: 'Cinzel', serif; font-size: 0.72rem; color: #cf9a6b; letter-spacing: 1px;">ACTIVE READER</div>
+            <div style="font-family: 'Cinzel', serif; font-size: 1.15rem; font-weight: 700; color: #f7ebe0; margin-top: 2px;">👤 {sb_dname}</div>
+            <div style="font-size: 0.78rem; color: #a88970;">@{sb_uname}</div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+    if st.button("🚪 Sign Out / Switch Reader", key="btn_sidebar_logout", use_container_width=True):
+        st.session_state.pop("logged_in_user", None)
+        st.session_state["save_toast"] = "Signed out successfully."
+        st.rerun()
+
+    st.markdown("<div style='height: 1px; background: #5a3c25; margin: 12px 0 16px 0;'></div>", unsafe_allow_html=True)
+
     st.markdown(
         """
         <div style="font-family: 'Cinzel', serif; font-size: 1.25rem; font-weight: 700; color: #faede0; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid #5a3a22; letter-spacing: 0.5px;">
@@ -1441,6 +1842,65 @@ with st.sidebar:
         st.session_state["last_detected_book"] = ""
 
     st.button("Add to Library", type="primary", use_container_width=True, on_click=handle_add)
+
+    # ================= SIDEBAR: SETTINGS & ACCOUNT MANAGEMENT =================
+    st.markdown("<div style='height: 1px; background: #5a3c25; margin: 26px 0 14px 0;'></div>", unsafe_allow_html=True)
+    with st.expander("⚙️ Settings"):
+        st.markdown(
+            """
+            <div style="font-family: 'Cinzel', serif; font-size: 0.88rem; font-weight: 700; color: #eeddcc; margin-bottom: 8px;">
+                🔑 CHANGE / RENEW PASSWORD
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        sb_curr_pw = st.text_input("Current Password", type="password", key="sb_curr_pw")
+        sb_new_pw1 = st.text_input("New Password", type="password", key="sb_new_pw1")
+        sb_new_pw2 = st.text_input("Confirm New Password", type="password", key="sb_new_pw2")
+        if st.button("Update Password", key="sb_btn_update_pw", use_container_width=True):
+            if not sb_curr_pw:
+                st.error("Please enter your current password.")
+            elif not sb_new_pw1 or len(sb_new_pw1) < 4:
+                st.error("New password must be at least 4 characters.")
+            elif sb_new_pw1 != sb_new_pw2:
+                st.error("New passwords do not match.")
+            else:
+                ok, msg = db.change_password(current_user["id"], sb_curr_pw, sb_new_pw1)
+                if ok:
+                    st.success(msg)
+                else:
+                    st.error(msg)
+
+        st.markdown("<div style='height: 1px; background: #4a2818; margin: 18px 0 14px 0;'></div>", unsafe_allow_html=True)
+
+        st.markdown(
+            """
+            <div style="font-family: 'Cinzel', serif; font-size: 0.88rem; font-weight: 700; color: #e57373; margin-bottom: 4px;">
+                ⚠️ DANGER ZONE: DELETE ACCOUNT
+            </div>
+            <div style="font-size: 0.78rem; color: #cf9a6b; margin-bottom: 8px;">
+                Permanently erase your reader profile and all your cataloged books. This action cannot be undone.
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        del_pw = st.text_input("Confirm Password to Delete", type="password", key="sb_del_acc_pw")
+        del_confirm = st.checkbox("I understand that all my books will be permanently erased", key="sb_del_chk")
+        
+        if st.button("🗑️ Delete My Account", key="sb_btn_del_acc", type="primary", use_container_width=True):
+            if not del_pw:
+                st.error("Please enter your password to confirm deletion.")
+            elif not del_confirm:
+                st.warning("Please check the confirmation box to proceed.")
+            else:
+                ok, msg = db.delete_user_account(current_user["id"], del_pw)
+                if ok:
+                    st.session_state.pop("logged_in_user", None)
+                    st.session_state.pop("opened_category_folder", None)
+                    st.session_state["save_toast"] = "Your account has been permanently deleted."
+                    st.rerun()
+                else:
+                    st.error(msg)
 
 
 if nav_view == NAV_BOOKCASES:
