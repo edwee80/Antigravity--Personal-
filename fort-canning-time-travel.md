@@ -1,14 +1,20 @@
-# Fort Canning Time Portal: Website Code
+# Fort Canning Time Portal: 700 Years of Singapore History
 
-A single-file website where tourists drag a time dial through five eras of Fort Canning Hill, Singapore. The whole page changes colour and story with each era, and visitors can stamp a "passport" for the spots they have visited.
+An interactive single-page web app where visitors drag a time dial across five eras of Fort Canning Hill, Singapore. The page changes colour palette and historical stories with each era, displays authentic photographs of each site with MRT/walking directions and Google Maps links, tracks an interactive "passport" with stamps, and awards an official Certificate of Accomplishment upon completion.
+
+## Features
+- **Interactive Time Dial & Slider:** Travel smoothly across 1300s, 1819, 1861, 1942, and Today.
+- **On-Site Milestone Photos & Directions:** High-definition photography, nearest MRT stations, walking route guidance, and Google Maps direct links.
+- **Interactive Time Passport:** Stamp and unstamp spots at any time, with quick-jump navigation badges.
+- **Completion Celebration:** Confetti animation and completion summary unlocking when all 5 eras are stamped.
+- **Certificate of Accomplishment:** Enter your name to live-preview a custom certificate rendered on HTML5 Canvas, downloadable as high-resolution PNG or printable to PDF.
 
 ## How to use
 
-1. Copy the code block below into a new file named `index.html`.
-2. Double-click the file to open it in a browser. No build step or server is needed.
-3. To put it online, upload the file to any static host (GitHub Pages, Netlify, Vercel).
+1. Run `python fortcanning.py` to start the local server and automatically open the website.
+2. Alternatively, double-click [fortcanning.html](file:///c:/Users/edwee/Documents/Edrey/Antigravity%20(Personal)/fortcanning.html) in your browser.
 
-## Full code (`index.html`)
+## Full code (`fortcanning.html`)
 
 ```html
 <!DOCTYPE html>

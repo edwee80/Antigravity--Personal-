@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fort Canning Time Portal</title>
+<title>Fort Canning Time Portal · 700 Years of Singapore History</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,800&family=Instrument+Sans:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #14281f; --ink: #f1e7c8; --accent: #e0b84a; --panel: rgba(255,255,255,.07);
+    --bg: #14281f; --ink: #f1e7c8; --accent: #e0b84a; --panel: rgba(255,255,255,.08);
     --display: "Fraunces", Georgia, serif;
     --body: "Instrument Sans", system-ui, sans-serif;
   }
@@ -20,82 +20,245 @@
     line-height: 1.6; min-height: 100vh;
     transition: background .8s ease, color .8s ease;
   }
-  main { max-width: 760px; margin: 0 auto; padding: 24px 20px 64px; }
-  header p { margin: 0; font-weight: 600; }
+  main { max-width: 800px; margin: 0 auto; padding: 24px 20px 80px; }
+  header { text-align: center; }
+  header p { margin: 0; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; font-size: 0.85rem; opacity: 0.85; }
 
   /* Hero: the dial and the year */
-  .hero { text-align: center; padding: 28px 0 8px; }
-  .dial { width: min(70vw, 280px); height: auto; display: block; margin: 0 auto; }
+  .hero { text-align: center; padding: 24px 0 8px; }
+  .dial { width: min(70vw, 260px); height: auto; display: block; margin: 0 auto; }
   .dial .ring { transform-origin: 100px 100px; transition: transform 1s cubic-bezier(.3,.8,.2,1); }
   .dial circle, .dial line { stroke: var(--ink); fill: none; transition: stroke .8s; }
   .dial .hand { stroke: var(--accent); stroke-width: 4; stroke-linecap: round; }
   .dial .dot { fill: var(--accent); stroke: none; }
   .year {
-    font-family: var(--display); font-weight: 800; font-size: clamp(3rem, 14vw, 5.5rem);
+    font-family: var(--display); font-weight: 800; font-size: clamp(3rem, 13vw, 5.2rem);
     line-height: 1; margin: 16px 0 4px; color: var(--accent); transition: color .8s;
   }
   .era-name { font-family: var(--display); font-weight: 500; font-size: 1.4rem; margin: 0; }
 
   /* Slider */
-  .slider-wrap { margin: 28px 0 8px; }
-  input[type=range] { width: 100%; accent-color: var(--accent); height: 32px; }
+  .slider-wrap { margin: 24px 0 8px; }
+  input[type=range] { width: 100%; accent-color: var(--accent); height: 32px; cursor: pointer; }
   .stops { display: flex; justify-content: space-between; gap: 4px; }
   .stops button {
     flex: 1; background: none; border: 0; color: var(--ink); opacity: .6;
-    font: 600 .8rem var(--body); padding: 10px 2px; cursor: pointer; min-height: 44px;
-    border-top: 3px solid transparent;
+    font: 600 .85rem var(--body); padding: 10px 2px; cursor: pointer; min-height: 44px;
+    border-top: 3px solid transparent; transition: all .2s;
   }
-  .stops button[aria-current="true"] { opacity: 1; border-top-color: var(--accent); }
+  .stops button:hover { opacity: .9; }
+  .stops button[aria-current="true"] { opacity: 1; border-top-color: var(--accent); font-weight: 700; }
 
   /* Story */
-  article { margin-top: 24px; max-width: 62ch; margin-inline: auto; }
-  article h2 { font-family: var(--display); font-size: 1.7rem; margin: 0 0 8px; }
-  article p { margin: 0 0 14px; font-size: 1.05rem; }
+  article { margin-top: 24px; max-width: 68ch; margin-inline: auto; }
+  article h2 { font-family: var(--display); font-size: 1.8rem; margin: 0 0 10px; color: var(--accent); }
+  article p { margin: 0 0 14px; font-size: 1.05rem; line-height: 1.65; }
+
+  /* Spot card */
   .spot {
     background: var(--panel); border-left: 4px solid var(--accent);
-    padding: 14px 16px; border-radius: 0 10px 10px 0; margin-top: 20px;
+    padding: 20px; border-radius: 0 14px 14px 0; margin-top: 28px;
+    box-shadow: 0 8px 24px rgba(0,0,0,.15);
   }
-  .spot h3 { margin: 0 0 4px; font-size: 1rem; }
-  .spot p { margin: 0 0 12px; font-size: .98rem; }
+  .spot-tag {
+    display: inline-block; font-size: 0.75rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px; color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .spot h3 { margin: 0 0 12px; font-size: 1.3rem; font-family: var(--display); }
+
+  /* Spot Image */
+  .spot-media {
+    width: 100%; border-radius: 12px; overflow: hidden;
+    margin: 12px 0 16px; position: relative;
+    box-shadow: 0 6px 20px rgba(0,0,0,.25);
+    background: rgba(0,0,0,.2);
+  }
+  .spot-media img {
+    width: 100%; height: auto; max-height: 400px;
+    object-fit: cover; display: block;
+    transition: transform .5s cubic-bezier(.2,.8,.2,1);
+  }
+  .spot-media:hover img { transform: scale(1.03); }
+  .media-caption {
+    position: absolute; bottom: 8px; right: 10px;
+    background: rgba(0,0,0,.7); backdrop-filter: blur(6px);
+    color: #fff; font-size: 0.75rem; font-weight: 500;
+    padding: 4px 10px; border-radius: 20px; pointer-events: none;
+  }
+
+  .spot-tip { font-size: 1rem; margin: 0 0 16px; opacity: .95; font-style: italic; }
+
+  /* Transit / How to go there */
+  .spot-directions {
+    background: rgba(0,0,0,.2); border-radius: 10px;
+    padding: 14px 16px; margin: 16px 0; font-size: .95rem;
+    border: 1px solid rgba(255,255,255,.08);
+  }
+  .dir-item {
+    display: flex; gap: 10px; align-items: flex-start;
+    margin-bottom: 10px; line-height: 1.45;
+  }
+  .dir-item:last-of-type { margin-bottom: 12px; }
+  .dir-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 1px; }
+  .dir-content strong { color: var(--accent); }
+  .map-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: var(--accent); font-weight: 600; text-decoration: none;
+    font-size: .9rem; padding: 6px 14px; background: var(--panel);
+    border-radius: 6px; border: 1px solid rgba(255,255,255,.12);
+    transition: all .2s ease;
+  }
+  .map-link:hover {
+    background: var(--accent); color: var(--bg);
+  }
+
+  /* Stamp button */
+  .spot-action { margin-top: 18px; }
   .stamp {
-    background: var(--accent); color: var(--bg); border: 2px solid var(--accent); border-radius: 999px;
-    font: 600 .95rem var(--body); padding: 12px 20px; min-height: 44px; cursor: pointer;
-    transition: background .2s ease, color .2s ease, border-color .2s ease, transform .15s ease;
+    background: var(--accent); color: var(--bg); border: 2px solid var(--accent);
+    border-radius: 999px; font: 700 1rem var(--body); padding: 13px 26px;
+    min-height: 48px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+    transition: all .2s ease; box-shadow: 0 4px 14px rgba(0,0,0,.2);
   }
-  .stamp:hover { transform: translateY(-1px); filter: brightness(1.08); }
+  .stamp:hover { transform: translateY(-2px); filter: brightness(1.08); box-shadow: 0 6px 18px rgba(0,0,0,.3); }
   .stamp.stamped {
-    background: transparent;
-    color: var(--ink);
-    border-color: var(--accent);
+    background: transparent; color: var(--ink); border-color: var(--accent);
   }
   .stamp.stamped:hover {
-    background: var(--panel);
-    color: var(--accent);
+    background: var(--panel); color: var(--accent);
   }
 
   /* Passport */
-  .passport { margin-top: 40px; text-align: center; }
-  .passport h2 { font-family: var(--display); font-size: 1.2rem; margin: 0 0 10px; }
-  .badges { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
-  .badge {
-    width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center;
-    border: 2px dashed var(--ink); opacity: .45; font-size: .7rem; font-weight: 600;
-    transition: all .4s; background: none; color: var(--ink); cursor: pointer; font-family: var(--body);
+  .passport {
+    margin-top: 48px; text-align: center; padding-top: 24px;
+    border-top: 1px solid rgba(255,255,255,.1);
   }
-  .badge:hover { opacity: .85; transform: scale(1.06); }
-  .badge.got { opacity: 1; border-style: solid; background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  .passport h2 { font-family: var(--display); font-size: 1.35rem; margin: 0 0 4px; }
+  .passport-status { font-size: .95rem; opacity: .85; margin: 0 0 16px; font-weight: 500; }
+  .badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+  .badge {
+    width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center;
+    border: 2px dashed var(--ink); opacity: .45; font-size: .75rem; font-weight: 700;
+    transition: all .3s cubic-bezier(.2,.8,.2,1); background: none; color: var(--ink);
+    cursor: pointer; font-family: var(--body);
+  }
+  .badge:hover { opacity: .85; transform: scale(1.08); }
+  .badge.got {
+    opacity: 1; border-style: solid; background: var(--accent);
+    color: var(--bg); border-color: var(--accent); box-shadow: 0 4px 12px rgba(0,0,0,.25);
+  }
 
-  footer { margin-top: 40px; font-size: .85rem; opacity: .75; text-align: center; }
+  /* Completion Section */
+  .completion-section {
+    margin-top: 40px; padding: 32px 24px; background: var(--panel);
+    border-radius: 18px; border: 2px solid var(--accent);
+    box-shadow: 0 16px 40px rgba(0,0,0,.3); text-align: center;
+    animation: fadeIn .6s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .completion-banner { margin-bottom: 20px; }
+  .trophy-badge { font-size: 3.2rem; margin-bottom: 8px; animation: bounce 2s infinite ease; }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  .completion-banner h2 {
+    font-family: var(--display); font-size: 2.1rem; color: var(--accent); margin: 0 0 6px;
+  }
+  .completion-subtitle { font-size: 1.05rem; opacity: .9; margin: 0; }
+  .summary-grid {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+    margin: 20px 0 26px;
+  }
+  .summary-pill {
+    background: rgba(0,0,0,.25); border: 1px solid var(--accent);
+    padding: 7px 14px; border-radius: 999px; font-size: .85rem; font-weight: 600;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .summary-pill span { color: var(--accent); }
+
+  /* Certificate form */
+  .cert-form {
+    max-width: 480px; margin: 0 auto 24px; text-align: left;
+    background: rgba(0,0,0,.15); padding: 18px 20px; border-radius: 12px;
+  }
+  .cert-form label { display: block; font-size: .95rem; margin-bottom: 8px; font-weight: 600; }
+  .name-input-row { display: flex; gap: 10px; }
+  .name-input-row input {
+    flex: 1; padding: 12px 14px; border-radius: 8px;
+    border: 1px solid var(--accent); background: var(--bg);
+    color: var(--ink); font-family: var(--body); font-size: 1rem;
+    outline: none; transition: box-shadow .2s;
+  }
+  .name-input-row input:focus { box-shadow: 0 0 0 3px rgba(224,184,74,.4); }
+
+  /* Certificate Canvas Preview */
+  .cert-preview-wrap {
+    margin: 20px auto; max-width: 100%; border-radius: 12px;
+    overflow: hidden; box-shadow: 0 12px 36px rgba(0,0,0,.45);
+    border: 1px solid rgba(255,255,255,.15); background: #faf7ee;
+  }
+  #certCanvas { width: 100%; height: auto; display: block; }
+
+  /* Certificate action buttons */
+  .cert-actions {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 24px;
+  }
+  .btn-primary {
+    background: var(--accent); color: var(--bg); font: 700 1rem var(--body);
+    padding: 14px 26px; border: 0; border-radius: 999px; cursor: pointer;
+    transition: all .2s ease; display: inline-flex; align-items: center; gap: 8px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.25);
+  }
+  .btn-primary:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,.35); }
+  .btn-secondary {
+    background: transparent; color: var(--ink); border: 2px solid var(--accent);
+    font: 600 .95rem var(--body); padding: 12px 22px; border-radius: 999px; cursor: pointer;
+    transition: all .2s ease; display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn-secondary:hover { background: var(--panel); transform: translateY(-1px); }
+  .btn-text {
+    background: none; border: none; color: var(--ink); opacity: .7;
+    font: 500 .85rem var(--body); padding: 10px 14px; cursor: pointer;
+    text-decoration: underline; margin-top: 6px;
+  }
+  .btn-text:hover { opacity: 1; color: var(--accent); }
+
+  footer { margin-top: 48px; font-size: .85rem; opacity: .75; text-align: center; }
+
+  #confettiCanvas {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    pointer-events: none; z-index: 9999;
+  }
 
   :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
-  @media (prefers-reduced-motion: reduce) {
-    * { transition: none !important; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+  /* Print Stylesheet for Certificate */
+  @media print {
+    body { background: #fff !important; color: #000 !important; }
+    header, .hero, .slider-wrap, article, .passport, footer, .cert-form, .cert-actions, #confettiCanvas {
+      display: none !important;
+    }
+    .completion-section {
+      background: none !important; border: none !important; box-shadow: none !important;
+      padding: 0 !important; margin: 0 !important;
+    }
+    .completion-banner, .summary-grid { display: none !important; }
+    .cert-preview-wrap {
+      box-shadow: none !important; border: none !important; margin: 0 !important;
+      width: 100% !important; max-width: 100% !important;
+    }
+    #certCanvas { width: 100% !important; height: auto !important; }
   }
 </style>
 </head>
 <body>
+<canvas id="confettiCanvas"></canvas>
+
 <main>
-  <header><p>Fort Canning Park, Singapore</p></header>
+  <header><p>Fort Canning Park · Singapore Heritage Trail</p></header>
 
   <section class="hero" aria-label="Time dial">
     <svg class="dial" viewBox="0 0 200 200" aria-hidden="true">
@@ -123,85 +286,189 @@
   <article id="story" aria-live="polite"></article>
 
   <section class="passport" aria-label="Time passport">
-    <h2>Your time passport</h2>
+    <h2>Your Time Passport</h2>
+    <p class="passport-status" id="passportStatus">0 of 5 eras stamped</p>
     <div class="badges" id="badges"></div>
   </section>
 
+  <!-- Completion Section (Unlocked when all 5 eras are stamped) -->
+  <section id="completionSection" class="completion-section" style="display:none;" aria-label="Completion and Certificate">
+    <div class="completion-banner">
+      <div class="trophy-badge">🏆</div>
+      <h2>Passport Completed!</h2>
+      <p class="completion-subtitle">You have successfully journeyed across 700 years of Fort Canning history!</p>
+    </div>
+
+    <div class="summary-grid">
+      <div class="summary-pill"><span>1300s</span> Keramat Iskandar Shah ✓</div>
+      <div class="summary-pill"><span>1819</span> Raffles & Spice Garden ✓</div>
+      <div class="summary-pill"><span>1861</span> Fort Gate & Fortress Walls ✓</div>
+      <div class="summary-pill"><span>1942</span> The Battlebox Bunker ✓</div>
+      <div class="summary-pill"><span>Today</span> Fort Canning Green ✓</div>
+    </div>
+
+    <!-- Personalized Name Form -->
+    <div class="cert-form">
+      <label for="certNameInput">Explorer Name on Certificate:</label>
+      <div class="name-input-row">
+        <input type="text" id="certNameInput" maxlength="40" placeholder="Enter your full name" value="Edrey Jeffrey">
+      </div>
+    </div>
+
+    <!-- Live Canvas Certificate Preview -->
+    <div class="cert-preview-wrap">
+      <canvas id="certCanvas" width="1600" height="1130"></canvas>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="cert-actions">
+      <button id="downloadCertBtn" class="btn-primary">
+        <span>📥 Download Certificate (.PNG)</span>
+      </button>
+      <button id="printCertBtn" class="btn-secondary">
+        <span>🖨️ Print / Save as PDF</span>
+      </button>
+      <button id="resetPassportBtn" class="btn-text">
+        <span>🔄 Reset Passport Stamps</span>
+      </button>
+    </div>
+  </section>
+
   <footer>
-    Stories are simplified for visitors. Confirm opening hours and trail details with NParks and on-site signs.
+    Stories and trail information compiled for visitors. Confirm opening hours and trail details with NParks and on-site signs.
   </footer>
 </main>
 
 <script>
-  // ---- 1. Content: edit this to change the experience ----
+  // ---- 1. Content: 5 Historic Eras with On-site Spots, Photos & Directions ----
   const ERAS = [
     {
       short: "1300s", year: "1300s", name: "Forbidden Hill",
       title: "A hill for kings",
       story: [
-        "Long before modern Singapore, this hill overlooked the trading port of Temasek. Malay histories say it was a royal ground, and locals kept away from it. That is how it came to be called Forbidden Hill.",
-        "Imagine the slope covered in forest, with the river and the sea in view below."
+        "Long before modern Singapore, this hill overlooked the flourishing trading port of Temasek. Ancient Malay histories record it as royal ground inhabited by palace royalty, and commoners were forbidden from ascending. That is how it became known as Bukit Larangan (Forbidden Hill).",
+        "Imagine the slope blanketed in ancient rainforest canopy, with royal residences presiding over the Singapore River and sea below."
       ],
-      spot: { id: "keramat", label: "Keramat", place: "Keramat Iskandar Shah",
-        tip: "Find this shrine near the hill's summit. By tradition it marks the resting place of Iskandar Shah, the last ruler of Temasek." },
+      spot: {
+        id: "keramat",
+        label: "Keramat",
+        place: "Keramat Iskandar Shah",
+        image: "static/images/keramat.jpg",
+        imageAlt: "Keramat Iskandar Shah shrine under lush ancient rainforest trees on Fort Canning Hill",
+        tip: "Find this peaceful sacred shrine near the hill summit. By long tradition, it marks the resting sanctuary of Iskandar Shah, the last ruler of 14th-century Temasek.",
+        mrt: "Fort Canning MRT (DT20) Exit B or Dhoby Ghaut (NS24/NE6/CC1) Exit B",
+        directions: "From Fort Canning MRT, take the covered escalators up to Fort Canning Green, then ascend the heritage stone steps toward the hilltop flagpole. Follow the sheltered footpaths under majestic ancient banyan trees to the yellow-draped shrine.",
+        mapUrl: "https://www.google.com/maps/search/?api=1&query=Keramat+Iskandar+Shah+Singapore"
+      },
       colors: { bg: "#14281f", ink: "#f1e7c8", accent: "#e0b84a" }
     },
     {
       short: "1819", year: "1819", name: "Government Hill",
       title: "A new British settlement",
       story: [
-        "In 1819 Stamford Raffles arrived and Singapore became a British trading post. The hill was chosen for the first government buildings and Raffles' residence, so it became known as Government Hill.",
-        "Raffles also set up an experimental botanical garden on the slope to test crops such as nutmeg and clove."
+        "In 1819, Sir Stamford Raffles established Singapore as a trading port. The hill was chosen for the first British Government House and Raffles' personal hilltop residence, earning it the title Government Hill.",
+        "Raffles also founded Singapore's very first experimental botanical and spice garden along the eastern slope to cultivate valuable cash crops like nutmeg, clove, and cocoa."
       ],
-      spot: { id: "spice", label: "Spice", place: "Raffles Garden and Spice Garden",
-        tip: "Walk the Spice Garden and look for nutmeg, clove, and other plants like those once trialled here." },
+      spot: {
+        id: "spice",
+        label: "Spice",
+        place: "Raffles Garden and Spice Garden",
+        image: "static/images/spice.jpg",
+        imageAlt: "Raffles Garden and terraced Spice Garden at Fort Canning Hill",
+        tip: "Stroll along the fragrant terraced gardens and look for living nutmeg, clove, and cinnamon trees descendants of the 1820s plantation experiments.",
+        mrt: "Fort Canning MRT (DT20) Exit B or Clarke Quay (NE5) Exit E",
+        directions: "Perched along the hill terrace just above River Valley Road. From Fort Canning MRT, walk past the foothills gallery and ascend the stone-lined winding garden paths into the Spice Garden terrace.",
+        mapUrl: "https://www.google.com/maps/search/?api=1&query=Fort+Canning+Spice+Garden+Singapore"
+      },
       colors: { bg: "#123247", ink: "#eaf3f2", accent: "#8fd3c7" }
     },
     {
       short: "1861", year: "1861", name: "Fort Canning",
       title: "A fort above the harbour",
       story: [
-        "In the 1850s and 60s the government moved down the hill and a fort was built on top. It was named after Viscount Canning, then Governor-General of India.",
-        "Soldiers lived in barracks here, and the hill became a military site for the next century."
+        "By 1859-1861, security concerns prompted the British administration to demolish Government House and construct a formidable hilltop artillery fort named after Viscount Charles Canning, Governor-General of India.",
+        "European soldiers were stationed in barracks on the plateau, protected by massive brick walls, moats, and heavy artillery overlooking Keppel Harbour and Singapore town."
       ],
-      spot: { id: "gate", label: "Gate", place: "Fort Gate and old fort walls",
-        tip: "Look for the gothic-style fort gate and the stretches of old wall. Run your hand along the brickwork." },
+      spot: {
+        id: "gate",
+        label: "Gate",
+        place: "Fort Gate and Old Fortress Walls",
+        image: "static/images/gate.jpg",
+        imageAlt: "Historic 1860 Fort Gate and brick fortress walls on Fort Canning Hill",
+        tip: "Examine the Gothic-revival brick gateway and the surviving sections of the 1860 fortress wall. Notice the heavy iron-studded wooden doors and rifle embrasures.",
+        mrt: "Bras Basah (CC2) Exit B, Bencoolen (DT21), or Dhoby Ghaut",
+        directions: "Walk up Canning Rise past the National Archives of Singapore. Turn onto the upper hill plateau path behind the Old Married Soldiers' Quarters until you arrive at the imposing Gothic brick archway.",
+        mapUrl: "https://www.google.com/maps/search/?api=1&query=Fort+Gate+Fort+Canning+Singapore"
+      },
       colors: { bg: "#3f2420", ink: "#f6eadf", accent: "#f0c987" }
     },
     {
       short: "1942", year: "1942", name: "The Battle Box",
       title: "Command centre underground",
       story: [
-        "Beneath the hill, a network of bunkers served as the British command centre during the Battle of Singapore in early 1942.",
-        "Key decisions were made here as the situation worsened, and the fall of Singapore followed in February. Today the Battle Box is a museum, so you can step inside."
+        "Nine metres beneath the hill, a bomb-proof labyrinth of 26 rooms served as the British Far East Command Bunker headquarters during the Battle of Singapore in World War II.",
+        "It was in this subterranean bunker on 15 February 1942 that Lieutenant-General Arthur Percival made the momentous decision to surrender Singapore to Japanese forces. Today, it is an authentic underground museum."
       ],
-      spot: { id: "battlebox", label: "Box", place: "The Battle Box",
-        tip: "Join the guided tour to walk the corridors and rooms. Check ticket details before you go." },
+      spot: {
+        id: "battlebox",
+        label: "Box",
+        place: "The Battlebox Bunker Museum",
+        image: "static/images/battlebox.jpg",
+        imageAlt: "Entrance to The Battlebox underground bunker museum at Fort Canning",
+        tip: "Visit the bunker entrance tucked into the hill slope. Guided tours take visitors through authentic operations rooms, cipher stations, and command suites.",
+        mrt: "Dhoby Ghaut MRT (NS24/NE6/CC1) Exit B",
+        directions: "Follow the pedestrian hill path from Dhoby Ghaut up to Cox Terrace, behind the main Fort Canning Centre. The bunker entrance is built into the earthen slope on the south-west side.",
+        mapUrl: "https://www.google.com/maps/search/?api=1&query=The+Battlebox+Fort+Canning+Singapore"
+      },
       colors: { bg: "#232427", ink: "#e8e8e2", accent: "#ffb000" }
     },
     {
       short: "Today", year: "Today", name: "Park of many layers",
-      title: "Four eras under your feet",
+      title: "Seven centuries under your feet",
       story: [
-        "Now the hill is a green park used for picnics, concerts, and heritage walks. Every path you take crosses layers of the stories you just travelled through.",
-        "Take a moment at the top. You are standing where kings, traders, soldiers, and gardeners stood before you."
+        "Today, Fort Canning Hill is a vibrant 18-hectare civic green haven. Open-air concerts, Shakespeare in the Park, weddings, and quiet walks take place across ground steeped in over seven centuries of history.",
+        "Take a moment on the great lawn. You stand where ancient Malay kings ruled, colonial governors governed, soldiers defended, and a modern city blossomed."
       ],
-      spot: { id: "green", label: "Lawn", place: "Fort Canning Green",
-        tip: "Sit on the lawn and look back downhill. Spot the city skyline, then picture the forest again." },
+      spot: {
+        id: "green",
+        label: "Lawn",
+        place: "Fort Canning Green",
+        image: "static/images/green.jpg",
+        imageAlt: "Fort Canning Green manicured lawn with heritage trees and modern Singapore skyline",
+        tip: "Relax on the expansive lawn framed by Gothic gate monuments. Look south towards the modern Singapore skyline, visualizing the layers of time beneath you.",
+        mrt: "Fort Canning MRT (DT20) Exit B",
+        directions: "Exit Fort Canning MRT at Exit B and ride the covered outdoor escalators straight up into Fort Canning Park. You will emerge directly onto the sweeping lawn of Fort Canning Green.",
+        mapUrl: "https://www.google.com/maps/search/?api=1&query=Fort+Canning+Green+Singapore"
+      },
       colors: { bg: "#e6eede", ink: "#1b2b1e", accent: "#2d7a4d" }
     }
   ];
 
-  // ---- 2. State and storage (safe if storage is blocked) ----
+  // ---- 2. State & Storage ----
   const KEY = "fcTimePassport";
+  const NAME_KEY = "fcExplorerName";
   let visited = [];
   try { visited = JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) {}
   function save() { try { localStorage.setItem(KEY, JSON.stringify(visited)); } catch (e) {} }
+
+  // Explorer Name state
+  let currentName = localStorage.getItem(NAME_KEY) || "Edrey Jeffrey";
 
   // ---- 3. Elements ----
   const $ = id => document.getElementById(id);
   const slider = $("slider"), stops = $("stops"), story = $("story");
   const root = document.documentElement.style;
+  const completionSection = $("completionSection");
+  const certNameInput = $("certNameInput");
+
+  if (certNameInput) {
+    certNameInput.value = currentName;
+    certNameInput.addEventListener("input", (e) => {
+      currentName = e.target.value;
+      try { localStorage.setItem(NAME_KEY, currentName); } catch (err) {}
+      renderCertificate(currentName);
+    });
+  }
 
   // Era buttons under slider
   ERAS.forEach((era, i) => {
@@ -211,7 +478,7 @@
     stops.appendChild(b);
   });
 
-  // ---- 4. Render ----
+  // ---- 4. Render Main Era View ----
   function render(i) {
     const era = ERAS[i];
     root.setProperty("--bg", era.colors.bg);
@@ -223,16 +490,42 @@
     [...stops.children].forEach((b, n) => b.setAttribute("aria-current", n === i));
 
     const done = visited.includes(era.spot.id);
+
     story.innerHTML =
       "<h2>" + era.title + "</h2>" +
       era.story.map(p => "<p>" + p + "</p>").join("") +
-      '<div class="spot"><h3>Find it on site: ' + era.spot.place + "</h3>" +
-      "<p>" + era.spot.tip + "</p>" +
-      '<button class="stamp' + (done ? " stamped" : "") + '" id="stampBtn" title="' + (done ? "Click to unstamp" : "Click to stamp") + '">' +
-      (done ? "✓ Stamped · Click to unstamp" : "Stamp my passport") + "</button></div>";
+      '<div class="spot">' +
+        '<span class="spot-tag">📍 On-Site Milestone</span>' +
+        '<h3>' + era.spot.place + '</h3>' +
+        '<div class="spot-media">' +
+          '<img src="' + era.spot.image + '" alt="' + era.spot.imageAlt + '" loading="lazy">' +
+          '<span class="media-caption">' + era.spot.place + '</span>' +
+        '</div>' +
+        '<p class="spot-tip">"' + era.spot.tip + '"</p>' +
+        '<div class="spot-directions">' +
+          '<div class="dir-item">' +
+            '<span class="dir-icon">🚇</span>' +
+            '<div class="dir-content"><strong>Nearest MRT:</strong> ' + era.spot.mrt + '</div>' +
+          '</div>' +
+          '<div class="dir-item">' +
+            '<span class="dir-icon">🚶</span>' +
+            '<div class="dir-content"><strong>How to get there:</strong> ' + era.spot.directions + '</div>' +
+          '</div>' +
+          '<a href="' + era.spot.mapUrl + '" target="_blank" rel="noopener noreferrer" class="map-link">' +
+            '<span>🗺️ Open Location in Google Maps</span>' +
+            '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>' +
+          '</a>' +
+        '</div>' +
+        '<div class="spot-action">' +
+          '<button class="stamp' + (done ? " stamped" : "") + '" id="stampBtn" title="' + (done ? "Click to unstamp" : "Click to stamp") + '">' +
+            (done ? "✓ Stamped · Click to unstamp" : "Stamp my passport") +
+          '</button>' +
+        '</div>' +
+      '</div>';
 
     const btn = $("stampBtn");
     btn.addEventListener("click", () => {
+      const isCompletingAll = !done && (visited.length === ERAS.length - 1);
       if (done) {
         visited = visited.filter(id => id !== era.spot.id);
       } else {
@@ -241,9 +534,11 @@
       save();
       render(i);
       renderBadges();
+      checkCompletion(isCompletingAll);
     });
   }
 
+  // ---- 5. Passport Badges & Completion Check ----
   function renderBadges() {
     $("badges").innerHTML = ERAS.map((e, idx) =>
       '<button type="button" class="badge' + (visited.includes(e.spot.id) ? " got" : "") +
@@ -257,11 +552,302 @@
         render(idx);
       });
     });
+
+    const statusEl = $("passportStatus");
+    if (visited.length === ERAS.length) {
+      statusEl.innerHTML = "🎉 <strong>All 5 Eras Visited!</strong> Your Certificate of Accomplishment is unlocked below.";
+      statusEl.style.color = "var(--accent)";
+    } else {
+      statusEl.textContent = visited.length + " of " + ERAS.length + " eras stamped";
+      statusEl.style.color = "inherit";
+    }
   }
 
+  function checkCompletion(justCompletedAll) {
+    if (visited.length === ERAS.length) {
+      completionSection.style.display = "block";
+      renderCertificate(currentName);
+      if (justCompletedAll) {
+        launchConfetti();
+        setTimeout(() => {
+          completionSection.scrollIntoView({ behavior: "smooth" });
+        }, 300);
+      }
+    } else {
+      completionSection.style.display = "none";
+    }
+  }
+
+  // ---- 6. Draw Certificate of Accomplishment on Canvas ----
+  function renderCertificate(name) {
+    const canvas = $("certCanvas");
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const W = 1600, H = 1130;
+    canvas.width = W;
+    canvas.height = H;
+
+    // Background Vintage Parchment
+    const bgGrad = ctx.createRadialGradient(W / 2, H / 2, 80, W / 2, H / 2, W / 1.15);
+    bgGrad.addColorStop(0, "#fefcf6");
+    bgGrad.addColorStop(1, "#f2ebd7");
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, W, H);
+
+    // Outer Heavy Gold Border
+    ctx.strokeStyle = "#c59b27";
+    ctx.lineWidth = 6;
+    ctx.strokeRect(36, 36, W - 72, H - 72);
+
+    // Inner Deep Forest Green Border
+    ctx.strokeStyle = "#14281f";
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(48, 48, W - 96, H - 96);
+
+    // Thin Gold Inset Line
+    ctx.strokeStyle = "#e0b84a";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(55, 55, W - 110, H - 110);
+
+    // Corner Ornaments
+    const corners = [
+      [55, 55], [W - 55, 55],
+      [55, H - 55], [W - 55, H - 55]
+    ];
+    corners.forEach(([cx, cy]) => {
+      ctx.fillStyle = "#c59b27";
+      ctx.beginPath();
+      ctx.arc(cx, cy, 9, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#14281f";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 16, 0, Math.PI * 2);
+      ctx.stroke();
+    });
+
+    // Subtitle Tag
+    ctx.fillStyle = "#8a6d1c";
+    ctx.font = "700 17px 'Instrument Sans', system-ui, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("REPUBLIC OF SINGAPORE · NATIONAL HERITAGE EXPEDITION", W / 2, 122);
+
+    // Main Title
+    ctx.fillStyle = "#14281f";
+    ctx.font = "800 54px 'Fraunces', Georgia, serif";
+    ctx.fillText("CERTIFICATE OF ACCOMPLISHMENT", W / 2, 185);
+
+    // Decorative Flourish Bar
+    ctx.strokeStyle = "#c59b27";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(W / 2 - 250, 215);
+    ctx.lineTo(W / 2 - 25, 215);
+    ctx.moveTo(W / 2 + 25, 215);
+    ctx.lineTo(W / 2 + 250, 215);
+    ctx.stroke();
+
+    ctx.fillStyle = "#c59b27";
+    ctx.save();
+    ctx.translate(W / 2, 215);
+    ctx.rotate(Math.PI / 4);
+    ctx.fillRect(-7, -7, 14, 14);
+    ctx.restore();
+
+    // Presentation text
+    ctx.fillStyle = "#5c574b";
+    ctx.font = "italic 22px 'Fraunces', Georgia, serif";
+    ctx.fillText("This official citation is awarded in recognition of", W / 2, 280);
+
+    // Explorer Name
+    const explorerName = (name && name.trim()) ? name.trim() : "Fort Canning Explorer";
+    ctx.fillStyle = "#14281f";
+    ctx.font = "800 58px 'Fraunces', Georgia, serif";
+    ctx.fillText(explorerName, W / 2, 365);
+
+    // Underline
+    ctx.strokeStyle = "#d4af37";
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    const nameWidth = ctx.measureText(explorerName).width;
+    const halfLine = Math.max(nameWidth / 2 + 45, 220);
+    ctx.moveTo(W / 2 - halfLine, 395);
+    ctx.lineTo(W / 2 + halfLine, 395);
+    ctx.stroke();
+
+    // Citation Body
+    ctx.fillStyle = "#33312b";
+    ctx.font = "400 23px 'Instrument Sans', system-ui, sans-serif";
+    ctx.fillText("for successfully traversing 700 years of living history across Fort Canning Hill,", W / 2, 455);
+    ctx.fillText("uncovering all five historical milestones from ancient Malay kingdom to modern heritage park.", W / 2, 492);
+
+    // 5 Era Medallions
+    const medalY = 645;
+    const gap = 245;
+    const startX = W / 2 - 2 * gap;
+
+    ERAS.forEach((e, idx) => {
+      const mx = startX + idx * gap;
+
+      // Medallion outer gold ring
+      ctx.fillStyle = "#faf3e0";
+      ctx.beginPath();
+      ctx.arc(mx, medalY, 52, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#c59b27";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // Inner dashed ring
+      ctx.save();
+      ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = "#14281f";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.arc(mx, medalY, 44, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.restore();
+
+      // Era year & star stamp
+      ctx.fillStyle = "#14281f";
+      ctx.font = "800 21px 'Fraunces', Georgia, serif";
+      ctx.fillText(e.year, mx, medalY - 7);
+
+      ctx.fillStyle = "#c59b27";
+      ctx.font = "700 12px 'Instrument Sans', system-ui, sans-serif";
+      ctx.fillText("★ STAMPED ★", mx, medalY + 15);
+
+      // Label under medal
+      ctx.fillStyle = "#1b2b1e";
+      ctx.font = "700 17px 'Instrument Sans', system-ui, sans-serif";
+      ctx.fillText(e.spot.label, mx, medalY + 82);
+      ctx.fillStyle = "#6e6859";
+      ctx.font = "400 14px 'Instrument Sans', system-ui, sans-serif";
+      ctx.fillText(e.name, mx, medalY + 104);
+    });
+
+    // Bottom Footer Area
+    const bottomY = 965;
+
+    // Official Gold Wax-style Seal on Left
+    const sealX = 220;
+    ctx.fillStyle = "#c59b27";
+    ctx.beginPath();
+    ctx.arc(sealX, bottomY, 55, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "800 13px 'Instrument Sans', system-ui, sans-serif";
+    ctx.fillText("OFFICIAL SEAL", sealX, bottomY - 6);
+    ctx.font = "700 11px 'Instrument Sans', system-ui, sans-serif";
+    ctx.fillText("VERIFIED 2026", sealX, bottomY + 12);
+
+    // Center Registry Serial
+    ctx.fillStyle = "#6e6859";
+    ctx.font = "500 15px 'Instrument Sans', monospace";
+    ctx.fillText("HERITAGE PASSPORT REGISTRY: FC-700YRS-" + Math.abs(explorerName.split("").reduce((a, b) => ((a << 5) - a) + b.charCodeAt(0), 0) % 90000 + 10000), W / 2, bottomY - 12);
+    ctx.font = "italic 16px 'Fraunces', Georgia, serif";
+    ctx.fillText("Fort Canning Hill Historical Expedition · Singapore", W / 2, bottomY + 14);
+
+    // Right: Date & Signature
+    const today = new Date();
+    const dateFormatted = today.toLocaleDateString("en-SG", { year: "numeric", month: "long", day: "numeric" });
+    const sigX = W - 230;
+
+    ctx.strokeStyle = "#14281f";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(sigX - 120, bottomY + 8);
+    ctx.lineTo(sigX + 120, bottomY + 8);
+    ctx.stroke();
+
+    ctx.fillStyle = "#14281f";
+    ctx.font = "italic 22px 'Fraunces', Georgia, serif";
+    ctx.fillText("Heritage Trail Curator", sigX, bottomY - 6);
+    ctx.fillStyle = "#555248";
+    ctx.font = "500 14px 'Instrument Sans', system-ui, sans-serif";
+    ctx.fillText("Date of Award: " + dateFormatted, sigX, bottomY + 32);
+  }
+
+  // ---- 7. Confetti Celebration Effect ----
+  function launchConfetti() {
+    const c = $("confettiCanvas");
+    if (!c) return;
+    const ctx = c.getContext("2d");
+    c.width = window.innerWidth;
+    c.height = window.innerHeight;
+    const pieces = [];
+    const colors = ["#e0b84a", "#2d7a4d", "#f1e7c8", "#ffb000", "#8fd3c7", "#f0c987", "#ffffff"];
+    for (let i = 0; i < 110; i++) {
+      pieces.push({
+        x: Math.random() * c.width,
+        y: Math.random() * c.height - c.height,
+        r: Math.random() * 6 + 4,
+        d: Math.random() * 50 + 10,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        tilt: Math.floor(Math.random() * 10) - 10,
+        tiltAngleIncremental: (Math.random() * 0.08) + 0.04,
+        tiltAngle: 0
+      });
+    }
+    let frame = 0;
+    function draw() {
+      ctx.clearRect(0, 0, c.width, c.height);
+      pieces.forEach(p => {
+        p.tiltAngle += p.tiltAngleIncremental;
+        p.y += (Math.cos(p.d) + 3 + p.r / 2) / 2;
+        p.tilt = Math.sin(p.tiltAngle - (p.r / 3)) * 14;
+        ctx.beginPath();
+        ctx.lineWidth = p.r / 2;
+        ctx.strokeStyle = p.color;
+        ctx.moveTo(p.x + p.tilt + p.r / 4, p.y);
+        ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r / 4);
+        ctx.stroke();
+      });
+      frame++;
+      if (frame < 220) {
+        requestAnimationFrame(draw);
+      } else {
+        ctx.clearRect(0, 0, c.width, c.height);
+      }
+    }
+    draw();
+  }
+
+  // ---- 8. Action Listeners (Download PNG, Print PDF, Reset) ----
+  $("downloadCertBtn").addEventListener("click", () => {
+    const canvas = $("certCanvas");
+    if (!canvas) return;
+    const link = document.createElement("a");
+    const safeName = (currentName || "Explorer").trim().replace(/[^a-zA-Z0-9_-]/g, "_");
+    link.download = "Fort_Canning_Certificate_" + safeName + ".png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  });
+
+  $("printCertBtn").addEventListener("click", () => {
+    window.print();
+  });
+
+  $("resetPassportBtn").addEventListener("click", () => {
+    if (confirm("Reset all stamps on your passport? You can stamp them again anytime.")) {
+      visited = [];
+      save();
+      render(+slider.value);
+      renderBadges();
+      checkCompletion(false);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  });
+
+  // ---- 9. Startup Initialization ----
   slider.addEventListener("input", () => render(+slider.value));
   render(0);
   renderBadges();
+  checkCompletion(false);
 </script>
 </body>
 </html>
